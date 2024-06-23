@@ -36,7 +36,6 @@ def register_user():
         "clave": clave,
         "descripcion": descripcion
     })
-    
     if response.status_code == 200:
         print("Usuario registrado correctamente")
     else:
