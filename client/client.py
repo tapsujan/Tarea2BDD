@@ -7,7 +7,7 @@ def login():
     clave = input("Ingrese su clave: ")
     
     response = requests.post(f"{API_URL}/login", json={"correo": correo, "clave": clave})
-    
+
     if response.status_code == 200:
         print("Inicio de sesión exitoso")
         return True, correo, clave
@@ -20,8 +20,8 @@ def menu():
     print("1. Registrar usuario")
     print("2. Bloquear usuario")
     print("3. Obtener información de usuario")
-    print("4. Marcar correo como favorito")
-    print("5. Desmarcar correo como favorito")
+    #print("4. Marcar correo como favorito")
+    #print("5. Desmarcar correo como favorito")
     print("6. Terminar")
 
 def register_user():
@@ -59,7 +59,7 @@ def view_user_info():
     correo_usuario = input("Ingrese el correo del usuario: ")
     
     response = requests.get(f"{API_URL}/informacion/{correo_usuario}")
-    
+
     if response.status_code == 200:
         print("Información del usuario:", response.json())
     else:
@@ -108,10 +108,10 @@ def main():
             block_user(correo, clave)
         elif opcion == "3":
             view_user_info()
-        elif opcion == "4":
-            mark_favorite(correo, clave)
-        elif opcion == "5":
-            unmark_favorite(correo, clave)
+        #elif opcion == "4":
+            #mark_favorite(correo, clave)
+        #elif opcion == "5":
+            #unmark_favorite(correo, clave)
         elif opcion == "6":
             print("Terminando ejecución del cliente")
             break

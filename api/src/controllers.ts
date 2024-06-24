@@ -1,81 +1,72 @@
 import { PrismaClient } from '@prisma/client';
-import express from 'express';
 
 const prisma = new PrismaClient();
 
-export const registrarUsuario = async (req: express.Request, res: express.Response) => {
-    const { correo, clave } = req.body;
+export async function registrarUsuario (options: {nombre: string, correo: string, clave: string, descripcion: string}) {
     try {
-        const usuario = await prisma.usuario.create({
-            data: { correo, clave },
+        const { nombre, correo, clave, descripcion } = options;
+        const usuario = await prisma.user.create({
+            data: {nombre, correo, clave, descripcion }
         });
-        res.json(usuario);
+        return 200;
     } catch (error) {
-        res.status(500).json({ error: 'Error al registrar usuario' });
+        console.log('Error al registrar usuario');
+        return 400;
     }
 };
 
-export const bloquearUsuario = async (req: express.Request, res: express.Response) => {
-    const { correo } = req.body;
+export async function bloquearUsuario (options: {correo: string, clave: string, correo_bloquear: string}) {
     try {
-        const usuario = await prisma.usuario.update({
-            where: { correo },
-            data: { bloqueado: true },
+        const { correo, clave, correo_bloquear } = options;
+        const user = await prisma.user.findUnique({where: {correo, clave}});
+        if(!user) {
+            throw new NotFoundError('Usuario no existe');
+        }
+        const userBlocked = await prisma.user.findUnique({where: {correo: correo_bloquear}});
+        if(!userBlocked) {
+            throw new NotFoundError('Usuario a bloquear no existe');
+        }
+        const usuario = await prisma.blocked.create({
+            data: { user: {connect: {id: user.id}}, nubBlocked: {
+                create: {userBlock: {connect: {id: userBlocked.id}}}
+                } }
         });
-        res.json(usuario);
+        return 200;
     } catch (error) {
-        res.status(500).json({ error: 'Error al bloquear usuario' });
+        console.log('Error al bloquear usuario');
+        return 400;
     }
 };
 
-export const obtenerInformacion = async (req: express.Request, res: express.Response) => {
-    const { correo } = req.params;
+export async function login (options: {correo: string, clave: string}) {
     try {
-        const usuario = await prisma.usuario.findUnique({
-            where: { correo },
-            select: { correo: true, bloqueado: true, favoritos: true },
+        const { correo, clave, correo_bloquear } = options;
+        const usuario = await prisma.user.findUnique({
+            where: { correo, clave }
         });
-        res.json(usuario);
+        if(!usuario) {
+            throw new NotFoundError('Error de login');
+        }
+
+        return 200;
     } catch (error) {
-        res.status(500).json({ error: 'Error al obtener información del usuario' });
+        console.log('Error en peticion');
+        return 400;
     }
 };
 
-export const login = async (req: express.Request, res: express.Response) => {
-    const { correo, clave } = req.params;
+export async function obtenerInformacion (correo: string) {
     try {
-        const usuario = await prisma.usuario.findUnique({
-            where: { correo, clave },
-            select: { correo: true, clave: true },
+        const usuario = await prisma.user.findUnique({
+            where: { correo }
         });
-        res.json(usuario);
+        if(!usuario) {
+            throw new NotFoundError('Error de login');
+        }
+        return usuario;
     } catch (error) {
-        res.status(500).json({ error: 'Error en el login del usuario' });
+        console.log('Error en peticion');
+        return 400;
     }
 };
 
-export const marcarCorreoFavorito = async (req: express.Request, res: express.Response) => {
-    const { correo, id_correo_favorito } = req.body;
-    try {
-        const usuario = await prisma.usuario.update({
-            where: { correo },
-            data: { favoritos: { connect: { id: id_correo_favorito } } },
-        });
-        res.json(usuario);
-    } catch (error) {
-        res.status(500).json({ error: 'Error al marcar correo como favorito' });
-    }
-};
-
-export const desmarcarCorreoFavorito = async (req: express.Request, res: express.Response) => {
-    const { correo, id_correo_favorito } = req.body;
-    try {
-        const usuario = await prisma.usuario.update({
-            where: { correo },
-            data: { favoritos: { disconnect: { id: id_correo_favorito } } },
-        });
-        res.json(usuario);
-    } catch (error) {
-        res.status(500).json({ error: 'Error al desmarcar correo como favorito' });
-    }
-};
