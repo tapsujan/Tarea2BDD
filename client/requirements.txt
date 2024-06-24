@@ -1,0 +1,3 @@
+curl https://bun.sh/install | bash
+pip install requests
+

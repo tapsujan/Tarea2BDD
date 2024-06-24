@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int         @id @default(autoincrement())
+  nombre        String
+  correo        String      @unique
+  clave         String
+  descripcion   String?
+  favorites     Favorite[]
+  correosBlock  Blocked[]
+  nubBlocked    BlockNub[]
+}
+
+model Favorite {
+  id            Int         @id @default(autoincrement())
+  user          User        @relation(fields: [userCorreo], references: [correo])
+  userCorreo    String
+  correoId      Int
+}
+
+model BlockNub {
+  id            Int         @id @default(autoincrement())
+  userBlock     User        @relation(fields: [blockedCorreo], references: [correo])
+  blockedCorreo String      @unique
+  correosBlock  Blocked[]
+  
+  @@map("blocked")
+}
+
+model Blocked {
+  user          User        @relation(fields: [userCorreo], references: [correo])
+  userCorreo    String      @map("user_correo")
+  nubBlocked    BlockNub    @relation(fields: [blockedCorreo], references: [blockedCorreo])
+  blockedCorreo String      @map("blocked_correo")
+  @@id([userCorreo, blockedCorreo])
+}
